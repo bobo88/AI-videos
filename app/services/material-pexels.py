@@ -31,7 +31,7 @@ def get_api_key(cfg_key: str):
     return api_keys[requested_count % len(api_keys)]
 
 
-def search_videos_pixabay(
+def search_videos_pexels(
     search_term: str,
     minimum_duration: int,
     video_aspect: VideoAspect = VideoAspect.portrait,
@@ -40,14 +40,13 @@ def search_videos_pixabay(
     video_orientation = aspect.name
     video_width, video_height = aspect.to_resolution()
     api_key = get_api_key("pixabay_api_keys")
-    # api_key = get_api_key("pixabay_api_keys")
+    # api_key = get_api_key("pexels_api_keys")
     headers = {"Authorization": api_key}
     # Build URL
-    # , "orientation": video_orientation
-    params = {"key": api_key, "q": search_term}
+    params = {"q": search_term, "key": api_key, "orientation": video_orientation}
     query_url = f"https://pixabay.com/api/videos/?{urlencode(params)}"
     # params = {"query": search_term, "per_page": 20, "orientation": video_orientation}
-    # query_url = f"https://api.pixabay.com/videos/search?{urlencode(params)}"
+    # query_url = f"https://api.pexels.com/videos/search?{urlencode(params)}"
     logger.info(f"searching videos: {query_url}, with proxies: {config.proxy}")
 
     try:
@@ -60,27 +59,25 @@ def search_videos_pixabay(
         )
         response = r.json()
         video_items = []
-        if "hits" not in response:
+        if "videos" not in response:
             logger.error(f"search videos failed: {response}")
             return video_items
-        videos = response["hits"]
-
-        logger.info(f"GET ===================== videos: {videos}")
+        videos = response["videos"]
         # loop through each video in the result
         for v in videos:
             duration = v["duration"]
             # check if video has desired minimum duration
             if duration < minimum_duration:
                 continue
-            video_files = v["videos"]
+            video_files = v["video_files"]
             # loop through each url to determine the best quality
             for video in video_files:
                 w = int(video["width"])
                 h = int(video["height"])
                 if w == video_width and h == video_height:
                     item = MaterialInfo()
-                    item.provider = "pixabay"
-                    item.url = video["url"]
+                    item.provider = "pexels"
+                    item.url = video["link"]
                     item.duration = duration
                     video_items.append(item)
                     break
@@ -192,7 +189,7 @@ def save_video(video_url: str, save_dir: str = "") -> str:
 def download_videos(
     task_id: str,
     search_terms: List[str],
-    source: str = "pixabay",
+    source: str = "pexels",
     video_aspect: VideoAspect = VideoAspect.portrait,
     video_contact_mode: VideoConcatMode = VideoConcatMode.random,
     audio_duration: float = 0.0,
@@ -201,7 +198,7 @@ def download_videos(
     valid_video_items = []
     valid_video_urls = []
     found_duration = 0.0
-    search_videos = search_videos_pixabay
+    search_videos = search_videos_pexels
     if source == "pixabay":
         search_videos = search_videos_pixabay
 
