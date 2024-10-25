@@ -6,6 +6,7 @@
 # 1. 克隆项目
 git clone https://github.com/bobo88/AI-videos.git
 cd AI-videos
+# 安装conda：[参考csdn这个文档](https://blog.csdn.net/lewis2951/article/details/136640530)
 conda create -n AI-videos python=3.10
 conda activate AI-videos
 pip install -r requirements.txt
